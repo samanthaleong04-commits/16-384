@@ -1,0 +1,3 @@
+{"nSamples": 5, "minJoint": [0, 0], "maxJoint": [0.1, 6.283185307179586], "linkLengths": [0.3, 0.1]}
+{"nSamples": 8, "minJoint": [0, 0], "maxJoint": [1.0, 6.283185307179586], "linkLengths": [1.0, 1.0]}
+{"nSamples": 6, "minJoint": [0, 0], "maxJoint": [2.0, 6.283185307179586], "linkLengths": [0.5, 0.5]}

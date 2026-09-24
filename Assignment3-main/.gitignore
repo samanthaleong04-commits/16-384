@@ -1,0 +1,42 @@
+# --- LaTeX build artifacts ---
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
+*.gz
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Generated during verification (regenerate locally) ---
+code/calculated_path.csv
+code/ground_truth_path.csv
+code/*.png
+
+# --- Hands-on lab (student recordings and videos) ---
+lab/recordings/
+lab/handin/*
+!lab/handin/README.md
+*.mp4
+*.mov
+*.webm
+
+# --- Submission / archive artifacts ---
+*_hw3.zip
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

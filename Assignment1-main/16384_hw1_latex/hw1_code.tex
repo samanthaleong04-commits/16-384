@@ -1,0 +1,266 @@
+\newcommand{\duedate}{17 September 2026}
+\documentclass{16384_doc}
+\newcommand{\assignmentname}{Assignment 1: Forward Kinematics}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{Code Questions}
+
+In these problems you will implement the forward kinematics and workspace
+analysis you derived in the written section, and then watch your own code drive
+a simulated robot arm.
+
+\subsection*{Setup}
+
+Copy the code handout to a location of your choice. Everything below is run
+from the top level of that folder --- the one containing
+\verb!local_autograder.py!.
+
+The simulator, the visualizer and the collision checker all live in
+\verb!xarm7_lib!, and the environment file there installs them:
+
+\begin{verbatim}
+    conda env create -f xarm7_lib/environment.yml
+    conda activate 16384
+\end{verbatim}
+
+The three exercises live in their own directories:
+
+\begin{itemize}
+    \item \verb!ex1! --- forward kinematics of a planar RRR arm.
+    \item \verb!ex2! --- workspace analysis of a PR arm and of an RRR arm.
+    \item \verb!ex3! --- the demo videos you record in the hands-on question.
+\end{itemize}
+
+\subsection*{Testing your work}
+
+\verb!local_autograder.py! checks your functions against a large set of stored
+test cases. Run all of them, or one exercise at a time:
+
+\begin{verbatim}
+    python local_autograder.py               # everything
+    python local_autograder.py -p ex1        # just ex1
+    python local_autograder.py -p ex2        # just ex2
+\end{verbatim}
+
+A failing run lists the first few cases that did not match; pass
+\verb!--verbose! to see more. The stored cases live in \verb!exN/inK.txt!
+(inputs) and \verb!exN/outK.txt! (expected outputs).
+
+\textbf{A word of warning.} The autograder on Gradescope does not use those
+stored outputs. It takes the same inputs, perturbs them by a small random
+amount that is different on every submission, and compares your result against
+a reference implementation. Code that reproduces the published numbers without
+actually computing the kinematics will score zero there. Write the general
+solution and the two graders will agree.
+
+\begin{questions}
+
+    \titledquestion{Forward Kinematics of an RRR Arm}[30]
+
+Complete \verb!ex1/forward_kinematics_RRR.py!. When implemented correctly,\\
+\verb!forward_kinematics_RRR! computes the forward kinematics of a planar RRR
+arm from the three joint angles \verb!theta1!, \verb!theta2!, \verb!theta3! and
+the three link lengths \verb!l1!, \verb!l2!, \verb!l3!.
+
+Each link lies
+along the $x$-axis of its starting frame, and each joint angle is measured
+counter-clockwise from the $x$-axis of the previous link. Because the arm is
+planar, every transform here is a $3 \times 3$ homogeneous matrix.
+
+Seven frames are defined along the arm, alternating between a joint rotation
+and a translation down a link:
+
+\begin{itemize}
+    \item \verb!H_1_0! $= \H{1}{0}$: the first joint, rotating \frame{0} by $\theta_1$ to give \frame{1}.
+    \item \verb!H_2_1! $= \H{2}{1}$: the first link, translating \frame{1} by $l_1$ to give \frame{2}.
+    \item \verb!H_3_2! $= \H{3}{2}$: the second joint, rotating \frame{2} by $\theta_2$ to give \frame{3}.
+    \item \verb!H_4_3! $= \H{4}{3}$: the second link, translating \frame{3} by $l_2$ to give \frame{4}.
+    \item \verb!H_5_4! $= \H{5}{4}$: the third joint, rotating \frame{4} by $\theta_3$ to give \frame{5}.
+    \item \verb!H_6_5! $= \H{6}{5}$: the third link, translating \frame{5} by $l_3$ to give \frame{6}.
+\end{itemize}
+
+\frame{0} is the base frame of the whole robot and \frame{6} is the end
+effector. Those six matrices are To-Do 1.
+
+For To-Do 2, compose them into \verb!H_6_0! $= \H{6}{0}$, the transform taking a
+point expressed in the end effector frame \frame{6} into the base frame
+\frame{0}:
+\[
+    \H{6}{0} = \H{1}{0}\,\H{2}{1}\,\H{3}{2}\,\H{4}{3}\,\H{5}{4}\,\H{6}{5}
+\]
+
+The two To-Dos are marked separately, so a correct \verb!H_6_0! built from
+incorrect elementary transforms will not earn full marks --- and neither will
+correct elementary transforms that are never composed.
+
+To check your implementation:
+\begin{itemize}
+    \item Start with angles of $0$ and $\piover{2}$, where you can work the
+        answer out by hand, and confirm that each transform carries points from
+        one link's frame into the previous one as you expect.
+    \item Run \verb!python local_autograder.py -p ex1!.
+    \item See it move: \verb!python local_autograder.py -p vis1! opens a browser
+        with three sliders, one per joint angle. The arm follows the sliders,
+        and the skeleton your \verb!forward_kinematics_RRR! predicts is drawn on
+        top of it. When your kinematics are right the two lie exactly on top of
+        one another; when they are wrong, the gap between them is your error.
+        The hands-on question below says more about this.
+\end{itemize}
+
+    \titledquestion{Workspace Analysis of a PR Arm}[20]
+
+Move to the \verb!ex2! directory. Here you will compute the reachable workspace
+of a PR (prismatic-rotary) arm by sweeping its joints over their full ranges.
+
+Start by reading \verb!workspace_analysis_RR.py!. It is a complete, working
+example for an RR arm: \verb!endEffector_RR! places the end effector for one
+pair of joint angles, and \verb!workspace_analysis_RR! sweeps both joints over
+\verb!nSamples! values each and collects the $\mathtt{nSamples}^2$ resulting
+positions. Compare the shape it produces to your analytical result from problem
+8 of the written section. Use it as the template for everything that follows.
+
+Your task is to complete \verb!endEffector_PR! in
+\verb!workspace_analysis_PR.py!. The sweep itself is already written for you, so
+this question is only the end effector position.
+
+\begin{itemize}
+    \item \verb!joints! is $[d, \theta]$: the prismatic extension $d$ in metres
+        and the revolute angle $\theta$ in radians.
+    \item \verb!linkLengths! is $[l_0, l_1]$. Note the convention here:
+        \emph{$l_0$ is the base link length of the prismatic joint}, so the
+        prismatic joint reaches from $l_0$ out to $l_0 + d$, and $l_1$ is the
+        length of the rotary link beyond it.
+    \item The prismatic joint ranges from $d = 0$ to $d = \d[f]$, its fully
+        extended length. That range is passed in as \verb!minJoint[0]! and
+        \verb!maxJoint[0]!.
+\end{itemize}
+
+
+Check your implementation with \verb!python local_autograder.py -p ex2!.
+
+\titledquestion{Workspace Analysis of an RRR Arm}[30]
+
+Now complete \verb!workspace_analysis_RRR.py!. Unlike the PR case, both
+functions in this file are yours to write.
+
+\begin{itemize}
+    \item \verb!endEffector_RRR(joints, linkLengths)! returns the $(x, y)$
+        position of the end effector, where \verb!joints! is
+        $[\theta_1, \theta_2, \theta_3]$ and \verb!linkLengths! is
+        $[l_1, l_2, l_3]$. This is the translation part of the \H{6}{0} you
+        built in the forward kinematics question, and you should get the same
+        answer both ways.
+    \item \verb!workspace_analysis_RRR(nSamples, minJoint, maxJoint, linkLengths)!
+        sweeps all three joints. Each joint takes \verb!nSamples! evenly spaced
+        values between its entry in \verb!minJoint! and its entry in
+        \verb!maxJoint!, and every combination is visited, so the returned
+        \verb!xs! and \verb!ys! each hold $\mathtt{nSamples}^3$ entries.
+\end{itemize}
+
+The order in which you sweep the joints is up to you --- the autograder
+compares the set of points you return, not the order they arrive in --- but the
+number of points must be exactly $\mathtt{nSamples}^3$.
+
+Check your implementation with \verb!python local_autograder.py -p ex2!.
+
+\end{questions}
+
+\section{Hands-On Questions}
+
+\begin{questions}
+
+    \titledquestion{Visualizing Your Kinematics on the xArm7}[20]
+
+For this part of the homework you will run your own code on a simulated
+UFACTORY xArm7 and record what you see. This question is graded by hand from
+the videos you submit.
+
+\subsection*{Why a 7-DoF arm can be your planar RRR arm}
+
+The xArm7 has seven revolute joints; the arm you have been deriving all
+assignment has three, in a plane. The two are the same mechanism once four of
+the seven joints are held still. Holding
+\[
+    \theta_2 = \piover{2}, \quad
+    \theta_3 = \piover{2}, \quad
+    \theta_5 = -\piover{2}, \quad
+    \theta_6 = \piover{2}
+\]
+leaves joints 1, 4 and 7 with their rotation axes all parallel to the world
+$z$-axis. Everything that can still move is then confined to a horizontal
+plane, and what is left is exactly a planar RRR arm: joint 1 at the shoulder,
+joint 4 at the elbow, joint 7 at the wrist. The visualizer measures $l_1$,
+$l_2$ and $l_3$ off the robot model itself and hands those lengths to your
+functions, so the numbers you are tested on are the real geometry of the arm in
+front of you.
+
+\subsection*{Recording the videos}
+
+Each command below opens a browser tab with the arm in it. Leave that tab
+visible and record your screen while it run. Any common format is fine (\verb!.mp4!, \verb!.mov!,
+\verb!.webm!).
+
+\begin{enumerate}
+    \item \textbf{Forward kinematics.}
+
+\begin{verbatim}
+    python local_autograder.py -p vis1
+\end{verbatim}
+
+    Three sliders appear above the arm, one per joint angle, and the skeleton
+    predicted by your \verb!forward_kinematics_RRR! is drawn over the arm as you
+    drag them. Record yourself moving all three sliders through a good part of
+    their range. Your video should show the predicted skeleton staying on the
+    arm throughout. If it drifts off, your kinematics are wrong --- fix them
+    before recording.
+
+    \item \textbf{Workspace sweep.}
+
+\begin{verbatim}
+    python local_autograder.py -p vis2
+\end{verbatim}
+
+    The points your \verb!workspace_analysis_RRR! predicts are drawn as a faint
+    cloud, and the arm then walks through the same joint grid, lighting up each
+    point as it reaches it. Record enough of the sweep that the traced points
+    are clearly filling in the predicted cloud.
+
+    The joint limits for this sweep are chosen so that the arm never collides
+    with itself, which is why the elbow angle does not use its full range.
+\end{enumerate}
+
+\subsection*{Deliverables}
+
+Put both videos in the \verb!ex3! directory; \verb!create_submission.py! will
+pick up everything in there. 
+
+Run \verb!create_submission.py! from the top level of the handout. It collects
+your three completed Python files and everything in \verb!ex3!, and writes a
+single \verb!handin.zip!:
+
+\begin{verbatim}
+    python create_submission.py
+\end{verbatim}
+
+
+This script does not grade your submission; it only packages it. Use
+\verb!local_autograder.py! to check your answers before you submit.
+
+\end{questions}
+
+\begin{submissionChecklist}
+    \item Complete \verb!ex1/forward_kinematics_RRR.py!,
+        \verb!ex2/workspace_analysis_PR.py! and
+        \verb!ex2/workspace_analysis_RRR.py!.
+    \item Confirm \verb!python local_autograder.py! passes.
+    \item Record the two demo videos and put them in \verb!ex3!.
+    \item Run \verb!python create_submission.py! to produce \verb!handin.zip!.
+    \item Upload \verb!handin.zip! to the \textbf{HW1 Code} assignment on
+        Gradescope.
+\end{submissionChecklist}
+
+\end{document}

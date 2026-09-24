@@ -1,0 +1,14 @@
+name: "16384"
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+    - meshcat
+    - mujoco
+    - pin
+    - robot_descriptions
+    - xacrodoc
+    - xarm-python-sdk
