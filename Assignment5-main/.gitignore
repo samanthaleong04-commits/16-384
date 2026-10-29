@@ -1,0 +1,18 @@
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.aux
+
+__pycache__/
+submission.zip
+
+# Answer key: reference solution, fixture generator, Gradescope autograder
+solutions/
+*.zip
+
+# The drawing lab writes these as it runs
+lab/results/
+lab/calibration-*.json
